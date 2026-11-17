@@ -1,0 +1,8 @@
+{
+  "name": "Iris Presisi",
+  "description": "Game memotong benda kuliner dengan presisi tinggi bergaya ilustrasi outline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
