@@ -37,6 +37,13 @@ import {
   generateCampaignShareBlob,
   shareResultImage,
 } from './game/share';
+import {
+  trackCampaignCompleted,
+  trackGameStart,
+  trackHelperItemUsed,
+  trackRoundCompleted,
+  trackShareOutcome,
+} from './game/analytics';
 import type { GameMode, GameState, HelperItemId, RoundResult } from './game/types';
 
 const TITLE_BACKDROP_SRC = '/src/assets/images/title_outline_backdrop_1794927015704.jpg';
@@ -147,6 +154,7 @@ export default function App() {
       if (itemId === 'undo' && !canUndo) return;
 
       soundEngine.playClick();
+      trackHelperItemUsed(itemId);
       setUsedItems((prev) => [...prev, itemId]);
       if (itemId === 'undo') {
         setUndoTrigger((t) => t + 1);
@@ -157,6 +165,7 @@ export default function App() {
 
   const startCampaign = useCallback(() => {
     soundEngine.playClick();
+    trackGameStart('CAMPAIGN');
     setMode('CAMPAIGN');
     setRoundIndex(0);
     setCampaignResults([]);
@@ -171,6 +180,7 @@ export default function App() {
 
   const startFreePlay = useCallback(() => {
     soundEngine.playClick();
+    trackGameStart('FREE_PLAY');
     setMode('FREE_PLAY');
     setFreeRoundCounter(1);
     setCurrentResult(null);
@@ -207,6 +217,15 @@ export default function App() {
         score: finalScore,
       };
 
+      trackRoundCompleted({
+        mode,
+        roundNumber: activeConfig.roundNumber,
+        objectId: activeConfig.objectId,
+        score: finalScore,
+        ratingTier: result.ratingTier,
+        avgDeviationPercent: result.avgDeviationPercent,
+      });
+
       if (mode === 'CAMPAIGN') {
         const nextStreak = finalScore > STREAK_SCORE_THRESHOLD ? streak + 1 : 0;
         const streakBonus = calculateStreakBonus(nextStreak);
@@ -226,6 +245,14 @@ export default function App() {
             const avgAcc = totalBase / CAMPAIGN_ROUNDS.length;
             const updatedBest = saveBestCampaign(totalWithBonus, avgAcc);
             setBestRecord(updatedBest);
+
+            const rankInfo = getFinalRank(totalBase, CAMPAIGN_ROUNDS.length * 100);
+            trackCampaignCompleted({
+              totalScore: totalWithBonus,
+              grade: rankInfo.grade,
+              rankTitle: rankInfo.title,
+              maxStreak: Math.max(nextStreak, streak),
+            });
           }
           return next;
         });
@@ -234,7 +261,7 @@ export default function App() {
       }
       setGameState('ROUND_SUMMARY');
     },
-    [mode, streak, usedItems, currentRoundRetries]
+    [mode, streak, usedItems, currentRoundRetries, activeConfig]
   );
 
   const handleRetryCampaignRound = useCallback(() => {
@@ -403,6 +430,7 @@ export default function App() {
           rank: finalRank,
         });
         const filename = `iris-presisi-hasil-${totalCampaignScore}.png`;
+        trackShareOutcome(action, totalCampaignScore);
         if (action === 'download') {
           downloadBlobAsPng(blob, filename);
           showShareNotice('Screenshot hasil akhir tersimpan!');

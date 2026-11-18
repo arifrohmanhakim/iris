@@ -53,6 +53,11 @@
    - Pembuatan kartu laporan hasil visual beresolusi tinggi langsung melalui Canvas.
    - Mendukung unduhan gambar format PNG dan Web Share API.
 
+8. **Integrasi Google Analytics 4 (GA4)**
+   - Inisialisasi dinamis dan aman tanpa dependensi pihak ketiga berat.
+   - Pelacakan peristiwa (*custom events*): `game_start`, `round_completed`, `campaign_completed`, `helper_item_used`, dan `share_result`.
+   - Menggunakan variabel lingkungan `VITE_GA_MEASUREMENT_ID`. Jika tidak diisi, fitur analitik otomatis non-aktif secara halus tanpa memunculkan galat.
+
 ---
 
 ## Teknologi yang Digunakan
@@ -82,6 +87,7 @@ iris/
     │   ├── SliceCanvas.tsx # Komponen canvas interaktif untuk memotong objek
     │   └── TitleLockup.tsx # Komponen header dan judul permainan
     └── game/
+        ├── analytics.ts    # Modul pelacakan Google Analytics 4 (GA4 & custom events)
         ├── audio.ts        # Mesin suara sintetis prosedural (Web Audio API)
         ├── geometry.ts     # Logika geometri (pemotongan poligon, Shoelace formula, centroid)
         ├── levels.ts       # Konfigurasi level kampanye, item pembantu, dan aturan skor
@@ -114,7 +120,14 @@ Sebelum memulai, pastikan perangkat telah terpasang:
    # npm install
    ```
 
-3. **Jalankan server pengembangan (development mode)**:
+3. **Konfigurasi Environment (Opsional untuk Google Analytics)**:
+   Salin `.env.example` ke `.env` lalu masukkan ID Measurement Anda:
+   ```bash
+   cp .env.example .env
+   ```
+   Atur nilai `VITE_GA_MEASUREMENT_ID="G-XXXXXXXXXX"`.
+
+4. **Jalankan server pengembangan (development mode)**:
    ```bash
    yarn dev
    # atau jika menggunakan npm:
@@ -122,14 +135,14 @@ Sebelum memulai, pastikan perangkat telah terpasang:
    ```
    Aplikasi akan berjalan secara lokal di `http://localhost:3000` (atau port yang tertera pada terminal).
 
-4. **Kompilasi untuk produksi (production build)**:
+5. **Kompilasi untuk produksi (production build)**:
    ```bash
    yarn build
    # atau jika menggunakan npm:
    # npm run build
    ```
 
-5. **Pratinjau hasil build produksi**:
+6. **Pratinjau hasil build produksi**:
    ```bash
    yarn preview
    # atau jika menggunakan npm:
